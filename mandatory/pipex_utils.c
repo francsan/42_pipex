@@ -3,14 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   pipex_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: francsan <francsan@student.42.fr>          +#+  +:+       +#+        */
+/*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/26 23:37:01 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/14 16:56:04 by francsan         ###   ########.fr       */
+/*   Updated: 2022/11/17 00:08:21 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex.h"
+
+void	close_pipe(int *fd)
+{
+	close(fd[0]);
+	close(fd[1]);
+}
 
 void	free_split(char **strs)
 {
@@ -22,58 +28,49 @@ void	free_split(char **strs)
 	free(strs);
 }
 
-char	**get_paths(char **envp)
+void	sort_arg(char *arg)
 {
 	int		i;
-	char	**paths;
+	int		j;
+	char	*temp;
 
-	i = 0;
-	paths = NULL;
-	while (envp[i])
+	i = ft_strlen(arg) - 1;
+	j = 0;
+	while (arg[i] != '/')
 	{
-		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
-		{
-			paths = ft_split(&envp[i][5], ':');
-			return (paths);
-		}
-		i++;
+		j++;
+		i--;
 	}
-	return (paths);
+	i++;
+	temp = ft_calloc(j + 1, sizeof(char));
+	j = 0;
+	while (arg[i])
+		temp[j++] = arg[i++];
+	free(arg);
+	arg = ft_strdup(temp);
+	free (temp);
 }
 
-void	free_temps(char *temp1, char *temp2, char **args)
+int	try_paths(char *path, char **args)
 {
-	free(temp2);
-	temp2 = ft_strdup(args[0]);
-	free(args[0]);
-	args[0] = ft_strjoin(temp1, temp2);
-	free(temp1);
-	free(temp2);
-}
-
-char	**get_args(char *argv, char **paths)
-{
-	char	**args;
 	char	*temp1;
 	char	*temp2;
-	int		i;
 
-	args = ft_split(argv, ' ');
-	i = 0;
-	while (paths[i])
+	if (args[0][0] == '/')
+		sort_arg(args[0]);
+	temp1 = ft_strjoin(path, "/");
+	temp2 = ft_strjoin(temp1, args[0]);
+	if (access(temp2, F_OK) == 0)
 	{
-		temp1 = ft_strjoin(paths[i], "/");
-		temp2 = ft_strjoin(temp1, args[0]);
-		if (access(temp2, F_OK) == 0)
-		{
-			free_temps(temp1, temp2, args);
-			return (args);
-		}
+		free(temp2);
+		temp2 = ft_strdup(args[0]);
+		free(args[0]);
+		args[0] = ft_strjoin(temp1, temp2);
 		free(temp1);
 		free(temp2);
-		i++;
+		return (1);
 	}
-	free(args[0]);
-	args[0] = NULL;
-	return (args);
+	free(temp1);
+	free(temp2);
+	return (0);
 }
