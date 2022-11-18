@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/16 18:45:06 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/17 00:27:33 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/17 22:57:06 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	msg_error(char *error)
 	exit(1);
 }
 
-void	msg_cmd_error(char *error, char *cmd)
+void	msg_cmd_error(char *cmd)
 {
 	char	*temp1;
 	char	*temp2;
@@ -40,7 +40,10 @@ void	msg_cmd_error(char *error, char *cmd)
 		temp1[i] = cmd[i];
 		i++;
 	}
-	temp2 = ft_strjoin(error, temp1);
+	if (cmd[0] == '/')
+		temp2 = ft_strjoin(ERR_CMD2, temp1);
+	else
+		temp2 = ft_strjoin(ERR_CMD1, temp1);
 	free(temp1);
 	temp1 = ft_strjoin(temp2, "\n");
 	write(2, temp1, ft_strlen(temp1));

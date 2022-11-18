@@ -5,72 +5,65 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/11/08 20:24:47 by francsan          #+#    #+#             */
-/*   Updated: 2022/11/17 01:05:43 by francisco        ###   ########.fr       */
+/*   Created: 2022/11/18 15:50:44 by francisco         #+#    #+#             */
+/*   Updated: 2022/11/18 16:44:58 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex_bonus.h"
 
-void	handle_pipes(char **argv, int i, int *fd, int store_fd)
+void	handle_pipes(t_data *data, char **argv, int i)
 {
-	int	file;
-
 	if (i == 2)
 	{
-		file = open(argv[i - 1], O_RDONLY);
-		if (file < 0)
+		data->infile = open(argv[i - 1], O_RDONLY);
+		if (data->infile < 0)
 			msg_error(ERR_INFILE);
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(file, STDIN_FILENO);
+		dup2(data->infile, STDIN_FILENO);
+		dup2(data ->fd[1], STDOUT_FILENO);
+		close(data->infile);
 	}
-	if (i > 2)
+	if (i > 2 && argv[i + 2] == NULL)
 	{
-		dup2(store_fd, STDIN_FILENO);
-		if (argv[i + 2] == NULL)
-		{
-			file = open(argv[i + 1], O_TRUNC | O_CREAT | O_RDWR, 0666);
-			if (file < 0)
-				msg_error(ERR_OUTFILE);
-			dup2(file, STDOUT_FILENO);
-		}
-		else
-			dup2(fd[1], STDOUT_FILENO);
+		data->outfile = open(argv[i + 1], O_TRUNC | O_CREAT | O_RDWR, 0666);
+		if (data->outfile < 0)
+			msg_error(ERR_OUTFILE);
+		dup2(data->store_fd, STDIN_FILENO);
+		dup2(data->outfile, STDOUT_FILENO);
+		close(data->outfile);
 	}
-	close_pipe(fd);
-	close(file);
+	if (i > 2 && argv[i + 2] != NULL)
+	{
+		dup2(data->store_fd, STDIN_FILENO);
+		dup2(data->fd[1], STDOUT_FILENO);
+	}
 }
 
-void	childp(char **argv, int i, int *fd, char **args)
+void	childp(t_data *data, char **argv, int i)
 {
-	static int	store_fd;
-	int			pid;
-
-	if (i == 3 && fd[0] < 0)
-		exit(0);
-	pid = fork();
-	if (pid == 0)
+	data->pid[i - 2] = fork();
+	if (data->pid[i - 2] == 0)
 	{
-		handle_pipes(argv, i, fd, store_fd);
-		if (args[0] == NULL)
-			msg_cmd_error(ERR_CMD, argv[i]);
-		execve(args[0], args, NULL);
-		waitpid(pid, NULL, 0);
+		handle_pipes(data, argv, i);
+		data->store_fd = dup(data->fd[0]);
+		close_pipe(data->fd);
+		if (data->args[0] == NULL)
+			msg_cmd_error(argv[i]);
+		execve(data->args[0], data->args, data->envp);
 		exit(0);
 	}
-	store_fd = dup(fd[0]);
 }
 
-char	**get_args(char *argv, char **paths)
+char	**get_args(char *arg, char **paths)
 {
 	char	**args;
 	int		i;
 
-	args = ft_split(argv, ' ');
+	args = ft_split(arg, ' ');
 	i = 0;
 	while (paths[i])
 	{
-		if (try_paths(paths[i], args) == 1)
+		if (try_paths(paths[i], args))
 			return (args);
 		i++;
 	}
@@ -100,27 +93,31 @@ char	**get_paths(char **envp)
 
 int	main(int argc, char **argv, char **envp)
 {
-	char	**paths;
-	char	**args;
-	int		fd[2];
+	t_data	*data;
 	int		i;
 
 	if (argc < 5)
 		return (msg(ERR_INPUT));
-	paths = get_paths(envp);
-	if (!paths)
+	data = ft_calloc(sizeof(t_data), 1);
+	data->envp = envp;
+	data->paths = get_paths(data->envp);
+	if (!data->paths)
 		return (msg(ERR_PATHS));
+	data->pid = ft_calloc(argc - 2, sizeof(int));
 	i = 2;
-	while (argv[i + 1] != NULL)
+	while (i < argc - 2)
 	{
-		if (pipe(fd) < 0)
+		if (pipe(data->fd) < 0)
 			msg_error(ERR_PIPE);
-		args = get_args(argv[i], paths);
-		childp(argv, i, fd, args);
-		close_pipe(fd);
-		free_split(args);
+		data->args = get_args(argv[i], data->paths);
+		childp(data, argv, i);
+		close_pipe(data->fd);
+		free_split(data->args);
 		i++;
 	}
-	free_split(paths);
-	return (0);
+	i = 0;
+	while (data->pid[i])
+		waitpid(data->pid[i++], NULL, 0);
+	free (data->pid);
+	free_split(data->paths);
 }

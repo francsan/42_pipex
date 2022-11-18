@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/08 20:24:47 by francsan          #+#    #+#             */
-/*   Updated: 2022/11/17 00:12:01 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/18 14:29:10 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,34 +36,29 @@ void	handle_pipes(char **argv, int i, int *fd)
 	close(file);
 }
 
-void	childp(char **argv, int i, int *fd, char **args)
+void	childp(t_data *data, char **argv, int i)
 {
-	int	pid;
-
-	if (i == 3 && fd[0] < 0)
-		exit(0);
-	pid = fork();
-	if (pid == 0)
+	data->pid[i - 2] = fork();
+	if (data->pid[i - 2] == 0)
 	{
-		handle_pipes(argv, i, fd);
-		if (args[0] == NULL)
-			msg_cmd_error(ERR_CMD, argv[i]);
-		execve(args[0], args, NULL);
-		waitpid(pid, NULL, 0);
+		handle_pipes(argv, i, data->fd);
+		if (data->args[0] == NULL)
+			msg_cmd_error(argv[i]);
+		execve(data->args[0], data->args, data->envp);
 		exit(0);
 	}
 }
 
-char	**get_args(char *argv, char **paths)
+char	**get_args(char *arg, char **paths)
 {
 	char	**args;
 	int		i;
 
-	args = ft_split(argv, ' ');
+	args = ft_split(arg, ' ');
 	i = 0;
 	while (paths[i])
 	{
-		if (try_paths(paths[i], args) == 1)
+		if (try_paths(paths[i], args))
 			return (args);
 		i++;
 	}
@@ -93,27 +88,31 @@ char	**get_paths(char **envp)
 
 int	main(int argc, char **argv, char **envp)
 {
-	char	**paths;
-	char	**args;
-	int		fd[2];
+	t_data	*data;
 	int		i;
 
 	if (argc != 5)
 		return (msg(ERR_INPUT));
-	paths = get_paths(envp);
-	if (!paths)
+	data = ft_calloc(sizeof(t_data), 1);
+	data->envp = envp;
+	data->paths = get_paths(data->envp);
+	if (!data->paths)
 		return (msg(ERR_PATHS));
-	if (pipe(fd) < 0)
+	if (pipe(data->fd) < 0)
 		msg_error(ERR_PIPE);
+	data->pid = ft_calloc(argc - 2, sizeof(int));
 	i = 2;
 	while (i <= 3)
 	{
-		args = get_args(argv[i], paths);
-		childp(argv, i, fd, args);
-		free_split(args);
+		data->args = get_args(argv[i], data->paths);
+		childp(data, argv, i);
+		free_split(data->args);
 		i++;
 	}
-	close_pipe(fd);
-	free_split(paths);
-	return (0);
+	close_pipe(data->fd);
+	i = 0;
+	while (data->pid[i])
+		waitpid(data->pid[i++], NULL, 0);
+	free (data->pid);
+	free_split(data->paths);
 }

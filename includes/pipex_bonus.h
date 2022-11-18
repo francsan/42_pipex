@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 00:26:14 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/17 01:16:19 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/18 16:08:50 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,26 +29,40 @@
 # define ERR_INPUT "Invalid number of arguments.\n"
 # define ERR_PATHS "Couldn't find paths.\n"
 # define ERR_PIPE "Pipe"
-# define ERR_CMD "command not found: "
+# define ERR_CMD1 "command not found: "
+# define ERR_CMD2 "no such file or directory: "
+
+/* struct */
+typedef struct s_data
+{
+	char	**envp;
+	char	**paths;
+	char	**args;
+	int		fd[2];
+	int		*pid;\
+	int		infile;
+	int		outfile;
+	int		store_fd;
+}	t_data;
 
 /* pipex_bonus functions */
 
 //pipex_bonus.c
-void	handle_pipes(char **argv, int i, int *fd, int store_fd);
-void	childp(char **argv, int i, int *fd, char **args);
+void	handle_pipes(t_data *data, char **argv, int i);
+void	childp(t_data *data, char **argv, int i);
 char	**get_paths(char **envp);
 char	**get_args(char *argv, char **paths);
 
 //pipex_utils_bonus.c
 void	close_pipe(int *fd);
 void	free_split(char **strs);
-int		sort_arg(char *arg);
+int		check_char(char *arg, char c);
 int		try_paths(char *path, char **args);
 
 //pipex_errors_bonus.c
 int		msg(char *error);
 void	msg_error(char *error);
-void	msg_cmd_error(char *error, char *cmd);
+void	msg_cmd_error(char *cmd);
 
 /* libft functions */
 

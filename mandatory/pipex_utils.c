@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/26 23:37:01 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/17 00:08:21 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/18 15:36:48 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,27 +28,25 @@ void	free_split(char **strs)
 	free(strs);
 }
 
-void	sort_arg(char *arg)
+int	check_char(char *arg, char c)
 {
-	int		i;
-	int		j;
 	char	*temp;
+	int		i;
 
-	i = ft_strlen(arg) - 1;
-	j = 0;
-	while (arg[i] != '/')
-	{
-		j++;
-		i--;
-	}
-	i++;
-	temp = ft_calloc(j + 1, sizeof(char));
-	j = 0;
+	i = 0;
 	while (arg[i])
-		temp[j++] = arg[i++];
-	free(arg);
-	arg = ft_strdup(temp);
-	free (temp);
+	{
+		if (arg[i] == c)
+		{
+			temp = ft_strjoin("./", arg);
+			free(arg);
+			arg = ft_strdup(temp);
+			free(temp);
+			return (1);
+		}
+		i++;
+	}
+	return (0);
 }
 
 int	try_paths(char *path, char **args)
@@ -56,8 +54,10 @@ int	try_paths(char *path, char **args)
 	char	*temp1;
 	char	*temp2;
 
-	if (args[0][0] == '/')
-		sort_arg(args[0]);
+	if (args[0][0] == '/' || args[0][0] == '.')
+		return (1);
+	if (check_char(args[0], '/') == 1)
+		return (1);
 	temp1 = ft_strjoin(path, "/");
 	temp2 = ft_strjoin(temp1, args[0]);
 	if (access(temp2, F_OK) == 0)

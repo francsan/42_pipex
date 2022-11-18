@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 00:18:34 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/17 00:24:20 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/18 15:25:06 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,26 +29,37 @@
 # define ERR_INPUT "Invalid number of arguments.\n"
 # define ERR_PATHS "Couldn't find paths.\n"
 # define ERR_PIPE "Pipe"
-# define ERR_CMD "command not found: "
+# define ERR_CMD1 "command not found: "
+# define ERR_CMD2 "no such file or directory: "
+
+/* struct */
+typedef struct s_data
+{
+	char	**envp;
+	char	**paths;
+	char	**args;
+	int		fd[2];
+	int		*pid;
+}	t_data;
 
 /* pipex functions */
 
 //pipex.c
 void	handle_pipes(char **argv, int i, int *fd);
-void	childp(char **argv, int i, int *fd, char **args);
+void	childp(t_data *data, char **argv, int i);
 char	**get_paths(char **envp);
 char	**get_args(char *argv, char **paths);
 
 //pipex_utils.c
 void	close_pipe(int *fd);
 void	free_split(char **strs);
-void	sort_arg(char *arg);
+int		check_char(char *arg, char c);
 int		try_paths(char *path, char **args);
 
 //pipex_errors.c
 int		msg(char *error);
 void	msg_error(char *error);
-void	msg_cmd_error(char *error, char *cmd);
+void	msg_cmd_error(char *cmd);
 
 /* libft functions */
 
