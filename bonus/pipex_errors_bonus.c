@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/16 18:45:06 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/17 22:57:06 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/22 04:26:40 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,25 +28,13 @@ void	msg_cmd_error(char *cmd)
 {
 	char	*temp1;
 	char	*temp2;
-	int		i;
 
-	i = 0;
-	while (cmd[i] != ' ' && cmd[i])
-		i++;
-	temp1 = ft_calloc(i + 1, sizeof(char));
-	i = 0;
-	while (cmd[i] != ' ' && cmd[i])
-	{
-		temp1[i] = cmd[i];
-		i++;
-	}
 	if (cmd[0] == '/')
-		temp2 = ft_strjoin(ERR_CMD2, temp1);
+		temp1 = ft_strjoin(ERR_CMD2, cmd);
 	else
-		temp2 = ft_strjoin(ERR_CMD1, temp1);
-	free(temp1);
-	temp1 = ft_strjoin(temp2, "\n");
-	write(2, temp1, ft_strlen(temp1));
+		temp1 = ft_strjoin(ERR_CMD1, cmd);
+	temp2 = ft_strjoin(temp1, "\n");
+	write(2, temp2, ft_strlen(temp2));
 	free(temp1);
 	free(temp2);
 	exit(1);

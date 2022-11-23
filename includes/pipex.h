@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 00:18:34 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/18 15:25:06 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/22 03:42:43 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,37 +24,42 @@
 
 /* errors */
 
-# define ERR_INFILE "Infile"
-# define ERR_OUTFILE "Outfile"
-# define ERR_INPUT "Invalid number of arguments.\n"
-# define ERR_PATHS "Couldn't find paths.\n"
-# define ERR_PIPE "Pipe"
+# define ERR_INFILE "infile"
+# define ERR_OUTFILE "outfile"
+# define ERR_INPUT "invalid number of arguments.\n"
+# define ERR_PATHS "couldn't find paths.\n"
+# define ERR_PIPE "pipe"
+# define ERR_FORK "fork failed"
 # define ERR_CMD1 "command not found: "
 # define ERR_CMD2 "no such file or directory: "
 
 /* struct */
 typedef struct s_data
 {
-	char	**envp;
 	char	**paths;
 	char	**args;
-	int		fd[2];
-	int		*pid;
+	char	*arg;
+	int		pipe[2];
+	int		i;
+	int		infile;
+	int		outfile;
+	pid_t	*pid;
 }	t_data;
 
 /* pipex functions */
 
 //pipex.c
-void	handle_pipes(char **argv, int i, int *fd);
-void	childp(t_data *data, char **argv, int i);
-char	**get_paths(char **envp);
-char	**get_args(char *argv, char **paths);
+void	handle_pipes(t_data *data, char **argv);
+void	childp(t_data *data, char **argv, char **envp);
+int		get_args(t_data *data, char **argv);
+int		get_paths(t_data *data, char **envp);
 
 //pipex_utils.c
-void	close_pipe(int *fd);
 void	free_split(char **strs);
-int		check_char(char *arg, char c);
-int		try_paths(char *path, char **args);
+void	close_pipe(t_data *data);
+int		sort_arg(t_data *data);
+int		check_char(t_data *data);
+int		try_paths(t_data *data, int j);
 
 //pipex_errors.c
 int		msg(char *error);

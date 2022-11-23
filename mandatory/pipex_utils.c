@@ -6,17 +6,11 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/26 23:37:01 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/18 15:36:48 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/22 04:23:55 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex.h"
-
-void	close_pipe(int *fd)
-{
-	close(fd[0]);
-	close(fd[1]);
-}
 
 void	free_split(char **strs)
 {
@@ -28,44 +22,59 @@ void	free_split(char **strs)
 	free(strs);
 }
 
-int	check_char(char *arg, char c)
+void	close_pipe(t_data *data)
+{
+	close(data->pipe[0]);
+	close(data->pipe[1]);
+}
+
+int	sort_arg(t_data *data)
 {
 	char	*temp;
-	int		i;
 
-	i = 0;
-	while (arg[i])
+	if (data->args[0][0] == '/' || data->args[0][0] == '.')
 	{
-		if (arg[i] == c)
+		if (access(data->args[0], F_OK) == 0)
 		{
-			temp = ft_strjoin("./", arg);
-			free(arg);
-			arg = ft_strdup(temp);
-			free(temp);
+			data->arg = strdup(data->args[0]);
 			return (1);
 		}
-		i++;
+	}
+	else
+	{
+		temp = ft_strjoin("./", data->args[0]);
+		data->arg = ft_strdup(temp);
+		free(temp);
+		return (1);
 	}
 	return (0);
 }
 
-int	try_paths(char *path, char **args)
+int	check_char(t_data *data)
+{
+	int		j;
+
+	j = -1;
+	while (data->args[0][++j])
+	{
+		if (data->args[0][j] == '/')
+			return (1);
+	}
+	return (0);
+}
+
+int	try_paths(t_data *data, int j)
 {
 	char	*temp1;
 	char	*temp2;
 
-	if (args[0][0] == '/' || args[0][0] == '.')
-		return (1);
-	if (check_char(args[0], '/') == 1)
-		return (1);
-	temp1 = ft_strjoin(path, "/");
-	temp2 = ft_strjoin(temp1, args[0]);
+	if (check_char(data))
+		return (sort_arg(data));
+	temp1 = ft_strjoin(data->paths[j], "/");
+	temp2 = ft_strjoin(temp1, data->args[0]);
 	if (access(temp2, F_OK) == 0)
 	{
-		free(temp2);
-		temp2 = ft_strdup(args[0]);
-		free(args[0]);
-		args[0] = ft_strjoin(temp1, temp2);
+		data->arg = strdup(temp2);
 		free(temp1);
 		free(temp2);
 		return (1);

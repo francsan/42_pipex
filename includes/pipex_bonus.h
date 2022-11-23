@@ -6,7 +6,7 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 00:26:14 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/18 16:08:50 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/22 19:11:15 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,42 +24,45 @@
 
 /* errors */
 
-# define ERR_INFILE "Infile"
-# define ERR_OUTFILE "Outfile"
-# define ERR_INPUT "Invalid number of arguments.\n"
-# define ERR_PATHS "Couldn't find paths.\n"
-# define ERR_PIPE "Pipe"
+# define ERR_INFILE "infile"
+# define ERR_OUTFILE "outfile"
+# define ERR_INPUT "invalid number of arguments.\n"
+# define ERR_PATHS "couldn't find paths.\n"
+# define ERR_PIPE "pipe"
+# define ERR_FORK "fork failed"
 # define ERR_CMD1 "command not found: "
 # define ERR_CMD2 "no such file or directory: "
 
 /* struct */
 typedef struct s_data
 {
-	char	**envp;
 	char	**paths;
 	char	**args;
-	int		fd[2];
-	int		*pid;\
+	char	*arg;
+	int		pipe[2];
+	int		old_pipe;
+	int		i;
 	int		infile;
 	int		outfile;
-	int		store_fd;
+	pid_t	*pid;
 }	t_data;
 
-/* pipex_bonus functions */
+/* pipex functions */
 
-//pipex_bonus.c
-void	handle_pipes(t_data *data, char **argv, int i);
-void	childp(t_data *data, char **argv, int i);
-char	**get_paths(char **envp);
-char	**get_args(char *argv, char **paths);
+//pipex.c
+void	handle_pipes(t_data *data, int argc, char **argv);
+void	childp(t_data *data, int argc,  char **argv, char **envp);
+int		get_args(t_data *data, char **argv);
+int		get_paths(t_data *data, char **envp);
 
-//pipex_utils_bonus.c
-void	close_pipe(int *fd);
+//pipex_utils.c
 void	free_split(char **strs);
-int		check_char(char *arg, char c);
-int		try_paths(char *path, char **args);
+void	close_pipe(t_data *data);
+int		sort_arg(t_data *data);
+int		check_char(t_data *data);
+int		try_paths(t_data *data, int j);
 
-//pipex_errors_bonus.c
+//pipex_errors.c
 int		msg(char *error);
 void	msg_error(char *error);
 void	msg_cmd_error(char *cmd);

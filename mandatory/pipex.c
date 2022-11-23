@@ -6,113 +6,104 @@
 /*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/08 20:24:47 by francsan          #+#    #+#             */
-/*   Updated: 2022/11/18 14:29:10 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/22 04:28:52 by francisco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex.h"
 
-void	handle_pipes(char **argv, int i, int *fd)
+void	handle_pipes(t_data *data, char **argv)
 {
-	int	file;
-
-	if (i == 2)
+	if (data->i == 2)
 	{
-		file = open(argv[i - 1], O_RDONLY);
-		if (file < 0)
+		data->infile = open(argv[1], O_RDONLY);
+		if (data->infile < 0)
 			msg_error(ERR_INFILE);
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(file, STDIN_FILENO);
+		dup2(data->pipe[1], STDOUT_FILENO);
+		dup2(data->infile, STDIN_FILENO);
+		close(data->infile);
 	}
-	if (i == 3)
+	if (data->i == 3)
 	{
-		file = open(argv[i + 1], O_TRUNC | O_CREAT | O_RDWR, 0666);
-		if (file < 0)
+		data->outfile = open(argv[4], O_TRUNC | O_CREAT | O_RDWR, 0666);
+		if (data->outfile < 0)
 			msg_error(ERR_OUTFILE);
-		dup2(file, STDOUT_FILENO);
-		dup2(fd[0], STDIN_FILENO);
+		dup2(data->outfile, STDOUT_FILENO);
+		dup2(data->pipe[0], STDIN_FILENO);
+		close(data->outfile);
 	}
-	close_pipe(fd);
-	close(file);
+	close_pipe(data);
 }
 
-void	childp(t_data *data, char **argv, int i)
+void	childp(t_data *data, char **argv, char **envp)
 {
-	data->pid[i - 2] = fork();
-	if (data->pid[i - 2] == 0)
+	data->pid[data->i - 2] = fork();
+	if (data->pid[data->i - 2] < 0)
+		msg_error(ERR_FORK);
+	else if (data->pid[data->i - 2] == 0)
 	{
-		handle_pipes(argv, i, data->fd);
-		if (data->args[0] == NULL)
-			msg_cmd_error(argv[i]);
-		execve(data->args[0], data->args, data->envp);
+		handle_pipes(data, argv);
+		if (data->arg == NULL)
+			msg_cmd_error(data->args[0]);
+		execve(data->arg, data->args, envp);
 		exit(0);
 	}
 }
 
-char	**get_args(char *arg, char **paths)
+int	get_args(t_data *data, char **argv)
 {
-	char	**args;
-	int		i;
+	int	j;
 
-	args = ft_split(arg, ' ');
-	i = 0;
-	while (paths[i])
+	data->args = ft_split(argv[data->i], ' ');
+	j = -1;
+	while (data->paths[++j])
 	{
-		if (try_paths(paths[i], args))
-			return (args);
-		i++;
+		if (try_paths(data, j))
+			return (1);
 	}
-	free(args[0]);
-	args[0] = NULL;
-	return (args);
+	data->arg = NULL;
+	return (-1);
 }
 
-char	**get_paths(char **envp)
+int	get_paths(t_data *data, char **envp)
 {
-	int		i;
-	char	**paths;
+	int		j;
 
-	i = 0;
-	paths = NULL;
-	while (envp[i])
+	j = -1;
+	while (envp[++j])
 	{
-		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
+		if (ft_strncmp(envp[j], "PATH=", 5) == 0)
 		{
-			paths = ft_split(&envp[i][5], ':');
-			return (paths);
+			data->paths = ft_split(&envp[j][5], ':');
+			return (1);
 		}
-		i++;
 	}
-	return (paths);
+	return (-1);
 }
 
 int	main(int argc, char **argv, char **envp)
 {
 	t_data	*data;
-	int		i;
 
 	if (argc != 5)
-		return (msg(ERR_INPUT));
-	data = ft_calloc(sizeof(t_data), 1);
-	data->envp = envp;
-	data->paths = get_paths(data->envp);
-	if (!data->paths)
 		return (msg(ERR_PATHS));
-	if (pipe(data->fd) < 0)
+	data = ft_calloc(sizeof(t_data), 1);
+	if (!get_paths(data, envp))
+		return (msg(ERR_PATHS));
+	if (pipe(data->pipe) < 0)
 		msg_error(ERR_PIPE);
-	data->pid = ft_calloc(argc - 2, sizeof(int));
-	i = 2;
-	while (i <= 3)
+	data->pid = ft_calloc(argc - 3, sizeof(pid_t));
+	data->i = 1;
+	while (++(data->i) <= argc - 2)
 	{
-		data->args = get_args(argv[i], data->paths);
-		childp(data, argv, i);
+		get_args(data, argv);
+		childp(data, argv, envp);
 		free_split(data->args);
-		i++;
+		free(data->arg);
 	}
-	close_pipe(data->fd);
-	i = 0;
-	while (data->pid[i])
-		waitpid(data->pid[i++], NULL, 0);
-	free (data->pid);
+	close_pipe(data);
+	data->i = -1;
+	while (data->pid[++(data->i)])
+		waitpid(data->pid[data->i], NULL, 0);
 	free_split(data->paths);
 }

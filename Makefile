@@ -37,7 +37,7 @@ all:			$(NAME)
 
 bonus:			$(OBJ_B) $(OBJ_F)
 				@$(CC) $(OBJ_B) $(OBJ_F) -o $(NAME)
-				@echo "$(GREEN)$(NAME) created bonus!$(DEFAULT)"
+				@echo "$(GREEN)$(NAME) bonus created!$(DEFAULT)"
 
 clean:
 				@$(RM) $(OBJ_M) $(OBJ_B) $(OBJ_F)
