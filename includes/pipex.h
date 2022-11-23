@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
+/*   By: francsan <francsan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 00:18:34 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/22 03:42:43 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/23 16:51:09 by francsan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ typedef struct s_data
 	int		i;
 	int		infile;
 	int		outfile;
-	pid_t	*pid;
+	pid_t	pid;
 }	t_data;
 
 /* pipex functions */

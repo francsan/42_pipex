@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
+/*   By: francsan <francsan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 15:50:44 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/22 21:01:17 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/23 16:55:02 by francsan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,12 @@ void	handle_pipes(t_data *data, int argc, char **argv)
 	close_pipe(data);
 }
 
-void	childp(t_data *data, int argc,  char **argv, char **envp)
+void	childp(t_data *data, int argc, char **argv, char **envp)
 {
-	data->pid[data->i - 2] = fork();
-	if (data->pid[data->i - 2] < 0)
+	data->pid = fork();
+	if (data->pid < 0)
 		msg_error(ERR_FORK);
-	else if (data->pid[data->i - 2] == 0)
+	else if (data->pid == 0)
 	{
 		handle_pipes(data, argc, argv);
 		if (data->arg == NULL)
@@ -73,7 +73,7 @@ int	get_args(t_data *data, char **argv)
 
 int	get_paths(t_data *data, char **envp)
 {
-	int		j;
+	int	j;
 
 	j = -1;
 	while (envp[++j])
@@ -92,11 +92,10 @@ int	main(int argc, char **argv, char **envp)
 	t_data	*data;
 
 	if (argc < 5)
-		return (msg(ERR_PATHS));
+		return (msg(ERR_INPUT));
 	data = ft_calloc(sizeof(t_data), 1);
 	if (!get_paths(data, envp))
 		return (msg(ERR_PATHS));
-	data->pid = ft_calloc(argc - 3, sizeof(pid_t));
 	data->i = 1;
 	while (++(data->i) <= argc - 2)
 	{
@@ -109,7 +108,7 @@ int	main(int argc, char **argv, char **envp)
 		free(data->arg);
 	}
 	data->i = -1;
-	while (data->pid[++(data->i)])
-		waitpid(data->pid[data->i], NULL, 0);
+	waitpid(-1, NULL, 0);
 	free_split(data->paths);
+	free(data);
 }

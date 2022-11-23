@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
+/*   By: francsan <francsan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 00:26:14 by francisco         #+#    #+#             */
-/*   Updated: 2022/11/22 19:11:15 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/23 16:55:27 by francsan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,14 +44,14 @@ typedef struct s_data
 	int		i;
 	int		infile;
 	int		outfile;
-	pid_t	*pid;
+	pid_t	pid;
 }	t_data;
 
 /* pipex functions */
 
 //pipex.c
 void	handle_pipes(t_data *data, int argc, char **argv);
-void	childp(t_data *data, int argc,  char **argv, char **envp);
+void	childp(t_data *data, int argc, char **argv, char **envp);
 int		get_args(t_data *data, char **argv);
 int		get_paths(t_data *data, char **envp);
 

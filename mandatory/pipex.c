@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: francisco <francisco@student.42.fr>        +#+  +:+       +#+        */
+/*   By: francsan <francsan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/08 20:24:47 by francsan          #+#    #+#             */
-/*   Updated: 2022/11/22 04:28:52 by francisco        ###   ########.fr       */
+/*   Updated: 2022/11/23 16:51:04 by francsan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ void	handle_pipes(t_data *data, char **argv)
 
 void	childp(t_data *data, char **argv, char **envp)
 {
-	data->pid[data->i - 2] = fork();
-	if (data->pid[data->i - 2] < 0)
+	data->pid = fork();
+	if (data->pid < 0)
 		msg_error(ERR_FORK);
-	else if (data->pid[data->i - 2] == 0)
+	else if (data->pid == 0)
 	{
 		handle_pipes(data, argv);
 		if (data->arg == NULL)
@@ -86,13 +86,12 @@ int	main(int argc, char **argv, char **envp)
 	t_data	*data;
 
 	if (argc != 5)
-		return (msg(ERR_PATHS));
+		return (msg(ERR_INPUT));
 	data = ft_calloc(sizeof(t_data), 1);
 	if (!get_paths(data, envp))
 		return (msg(ERR_PATHS));
 	if (pipe(data->pipe) < 0)
 		msg_error(ERR_PIPE);
-	data->pid = ft_calloc(argc - 3, sizeof(pid_t));
 	data->i = 1;
 	while (++(data->i) <= argc - 2)
 	{
@@ -102,8 +101,7 @@ int	main(int argc, char **argv, char **envp)
 		free(data->arg);
 	}
 	close_pipe(data);
-	data->i = -1;
-	while (data->pid[++(data->i)])
-		waitpid(data->pid[data->i], NULL, 0);
+	waitpid(-1, NULL, 0);
 	free_split(data->paths);
+	free(data);
 }
